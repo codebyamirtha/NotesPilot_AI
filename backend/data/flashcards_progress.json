@@ -1,0 +1,52 @@
+{
+  "test_user_flashcards": {
+    "card_demo_1": {
+      "box": 2,
+      "reviews": 1,
+      "lastReviewed": "2026-08-25T13:56:02.945Z",
+      "nextReviewDate": "2026-08-25T14:06:02.944Z",
+      "mastery": 40
+    }
+  },
+  "3314d500-faba-4935-a4e4-e2938562cf03": {
+    "card_4feb9f32-4420-441e-864a-3b71f9a62112_def_1": {
+      "box": 2,
+      "reviews": 1,
+      "lastReviewed": "2026-08-31T04:59:33.626Z",
+      "nextReviewDate": "2026-08-31T05:09:33.626Z",
+      "mastery": 40
+    }
+  },
+  "6758b257-dd4d-4bad-9d33-181dc3d7d549": {
+    "card_7b0e0806-00d9-40d9-84bf-390d526e9883_def_1": {
+      "box": 2,
+      "reviews": 1,
+      "lastReviewed": "2026-10-14T04:01:36.260Z",
+      "nextReviewDate": "2026-10-14T04:11:36.260Z",
+      "mastery": 40
+    }
+  },
+  "1c236de1-5c03-44cb-81b8-5dc863df5728": {
+    "card_be8cdd57-a883-4b1b-baba-7413edcadbc5_def_1": {
+      "box": 1,
+      "reviews": 1,
+      "lastReviewed": "2026-10-14T04:37:45.302Z",
+      "nextReviewDate": "2026-10-14T04:38:45.302Z",
+      "mastery": 20
+    },
+    "card_be8cdd57-a883-4b1b-baba-7413edcadbc5_def_2": {
+      "box": 1,
+      "reviews": 1,
+      "lastReviewed": "2026-10-14T04:37:49.985Z",
+      "nextReviewDate": "2026-10-14T04:47:49.985Z",
+      "mastery": 20
+    },
+    "card_be8cdd57-a883-4b1b-baba-7413edcadbc5_def_3": {
+      "box": 3,
+      "reviews": 1,
+      "lastReviewed": "2026-10-14T04:37:51.643Z",
+      "nextReviewDate": "2026-10-15T04:37:51.643Z",
+      "mastery": 60
+    }
+  }
+}

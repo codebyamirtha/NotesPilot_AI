@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Quiz Generator - NotesPilot AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <div class="navbar" id="navbar-mount"></div>
+
+  <div class="container" style="max-width:880px; padding:24px 16px;">
+    <!-- Page Header -->
+    <div style="margin-bottom:24px;">
+      <div class="quiz-header-badge">🧠 Active Recall Engine</div>
+      <h2 style="margin:4px 0 8px 0;">AI-Generated Lecture Quiz</h2>
+      <p class="muted" style="margin:0;">Test your mastery with questions generated directly from your classroom notes & transcripts.</p>
+    </div>
+
+    <!-- Lecture & Settings Card -->
+    <div class="card" style="margin-bottom:24px;">
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label for="lecture-select" style="font-weight:600; display:block; margin-bottom:8px;">📚 Select Lecture</label>
+          <select id="lecture-select" style="width:100%; padding:10px 14px; border-radius:8px; border:1.5px solid var(--border); font-size:0.95rem;"></select>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.88rem; font-weight:600; color:var(--ink-soft);">Question Count:</span>
+            <div id="count-pills" style="display:inline-flex; gap:6px;">
+              <button type="button" class="btn btn-ghost count-pill" data-count="5" onclick="setQuestionCount(5)">5 Qs</button>
+              <button type="button" class="btn btn-ghost count-pill active" data-count="10" onclick="setQuestionCount(10)" style="border-color:var(--accent-amber); background:rgba(232,163,61,0.15); font-weight:600;">10 Qs</button>
+              <button type="button" class="btn btn-ghost count-pill" data-count="15" onclick="setQuestionCount(15)">15 Qs</button>
+            </div>
+          </div>
+
+          <button id="btn-generate-quiz" class="btn btn-accent" style="padding:10px 22px; font-weight:600;" onclick="generateQuiz()">
+            ⚡ Generate Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="quiz-loading" class="card hidden" style="text-align:center; padding:40px 20px;">
+      <div style="font-size:2rem; margin-bottom:12px; animation: pulse 1.5s infinite;">🧠</div>
+      <h3 style="margin-bottom:6px;">Analyzing Notes & Generating Questions...</h3>
+      <p class="muted">Extracting definitions, section topics, and key principles.</p>
+    </div>
+
+    <!-- Active Quiz Workspace -->
+    <div id="quiz-workspace" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <h3 id="quiz-subject-title" style="margin:0;">Lecture Quiz</h3>
+        <span id="quiz-progress-text" class="capacity-pill" style="font-size:0.85rem;">0 of 10 Answered</span>
+      </div>
+
+      <form id="quiz-form"></form>
+    </div>
+
+    <!-- Quiz Result & Review Breakdown -->
+    <div id="quiz-result" class="hidden"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/quiz.js"></script>
+</body>
+
+</html>

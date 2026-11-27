@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Supporter (AI Tutor) - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container" style="max-width:1050px; padding-top:16px;">
+  <div class="supporter-container">
+    
+    <!-- Top Controls Header -->
+    <div class="supporter-header-bar">
+      <div class="flex" style="gap:10px; align-items:center;">
+        <h3 style="margin:0; font-size:1.15rem; display:flex; align-items:center; gap:8px;">
+          🤖 Student Supporter
+        </h3>
+        <span class="supporter-badge" id="model-status-badge">⚡ Offline Smart Assistant</span>
+      </div>
+
+      <div class="flex" style="gap:8px; align-items:center; flex-wrap:wrap;">
+        <!-- Lecture Context Dropdown -->
+        <select id="lecture-context-select" onchange="onLectureContextChange()" style="padding:6px 10px; font-size:0.84rem; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink); max-width:240px;">
+          <option value="">🌐 General Tutoring (All Subjects)</option>
+        </select>
+
+        <!-- OpenAI Settings Button -->
+        <button class="btn btn-ghost" onclick="openOpenAIModal()" style="padding:5px 12px; font-size:0.82rem;" title="Configure OpenAI API Key & Model">
+          ⚙️ OpenAI Platform Key
+        </button>
+
+        <!-- Clear Chat Button -->
+        <button class="btn btn-ghost" onclick="clearChatHistory()" style="padding:5px 10px; font-size:0.82rem; border-color:#E63946; color:#E63946;" title="Clear current conversation">
+          🗑️ Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Scroll Feed -->
+    <div class="supporter-chat-feed" id="chat-feed">
+      <!-- Default Welcoming Bot Message -->
+      <div class="supporter-msg-row bot">
+        <div class="supporter-avatar">🤖</div>
+        <div class="supporter-bubble">
+          <h3>Hello! I'm your Student Supporter AI Companion 👋</h3>
+          <p>I'm here 24/7 to help you master challenging topics, explain concepts simply, generate practice questions, debug code or formulas, and optimize your study routine.</p>
+          <p>You can ask me any academic question or pick a quick prompt below to get started!</p>
+          <div class="supporter-bubble-footer">
+            <span>Powered by NotesPilot AI</span>
+            <button onclick="readAloudText(this.parentElement.parentElement.innerText)">🔊 Read Aloud</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Prompt Suggestions Tray -->
+    <div class="supporter-chips-tray" id="chips-tray">
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('Explain this concept simply with an intuitive everyday analogy (ELI5): ')">💡 Explain Concept (ELI5)</button>
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('Generate 3 challenging multiple-choice practice questions with detailed explanations for: ')">⚡ 3 Practice Questions</button>
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('Create an actionable 7-day study timetable and checklist for my upcoming exam on: ')">🎯 7-Day Study Plan</button>
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('Help me write a clear, well-structured academic note outline for: ')">📝 Structured Note Outline</button>
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('Explain the mathematical formula or step-by-step logic behind: ')">🔢 Formula / Logic Breakdown</button>
+      <button class="supporter-prompt-chip" onclick="applyQuickPrompt('What are 3 practical mental strategies to overcome exam stress and study fatigue?')">🧘 Manage Study Stress</button>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="supporter-input-bar">
+      <textarea 
+        id="user-input" 
+        class="supporter-textarea" 
+        placeholder="Ask Student Supporter anything (e.g. 'Explain quicksort', 'Give me practice problems')... [Press Enter to Send, Shift+Enter for newline]"
+        rows="1"
+        onkeydown="handleInputKeydown(event)"
+        oninput="autoResizeTextarea(this)"
+      ></textarea>
+      <button class="supporter-send-btn" id="send-btn" onclick="sendMessage()">
+        <span>Send</span> 🚀
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- OPENAI PLATFORM KEY CONFIGURATION MODAL                 -->
+<!-- ======================================================= -->
+<div class="modal-overlay hidden" id="openai-modal" onclick="if(event.target===this) closeOpenAIModal();">
+  <div class="modal-content" style="max-width:500px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 style="margin:0;">⚙️ OpenAI Platform Settings</h3>
+      <button class="btn btn-ghost" style="padding:4px 10px;" onclick="closeOpenAIModal()">✕</button>
+    </div>
+
+    <p class="muted" style="font-size:0.86rem; margin-top:0;">
+      Link your <strong>OpenAI API Key</strong> to unlock live <strong>GPT-4o / GPT-3.5</strong> multi-turn intelligence for open-ended queries across any subject.
+    </p>
+
+    <div style="margin-bottom:14px;">
+      <label for="openai-key-input">OpenAI API Key</label>
+      <input type="password" id="openai-key-input" placeholder="sk-proj-..." style="width:100%; font-family:'JetBrains Mono', monospace; font-size:0.88rem;" />
+      <span class="muted" style="font-size:0.75rem;">🔒 Your key is securely stored in your browser's local storage only.</span>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <label for="openai-model-select">Select AI Model</label>
+      <select id="openai-model-select" style="width:100%; padding:10px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+        <option value="gpt-4o-mini" selected>GPT-4o Mini (Fast, Recommended & Affordable)</option>
+        <option value="gpt-4o">GPT-4o (State-of-the-Art Academic Reasoning)</option>
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Standard Model)</option>
+        <option value="offline">Offline Smart Assistant (No API Key Required)</option>
+      </select>
+    </div>
+
+    <div class="flex-between">
+      <button type="button" class="btn btn-ghost" onclick="removeOpenAIKey()" style="border-color:#E63946; color:#E63946; padding:6px 12px; font-size:0.85rem;">
+        Remove Saved Key
+      </button>
+      <div class="flex" style="gap:8px;">
+        <button type="button" class="btn btn-ghost" onclick="closeOpenAIModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveOpenAISettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">Student Supporter AI · Powered by OpenAI API with 100% Offline Classroom Assistant fallback.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/supporter.js"></script>
+</body>
+</html>

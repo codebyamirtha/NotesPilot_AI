@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Focus Timer - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container">
+  <h2>⏱️ Focus Timer <span class="muted" style="font-size:0.9rem;">(Extra Enhancement Feature)</span></h2>
+  <p class="muted">A Pomodoro-style study timer with a streak tracker, plus a visual mind map built from your lecture keywords - two bonus features beyond the original brief.</p>
+
+  <div class="grid-2" style="align-items:start;">
+    <!-- Pomodoro Timer -->
+    <div class="card" style="text-align:center;">
+      <h3>Study Session</h3>
+      <div class="timer-display" id="timer-display">25:00</div>
+      <div class="flex" style="justify-content:center; margin-bottom:14px;">
+        <button class="btn btn-primary" id="start-btn" onclick="startTimer()">Start</button>
+        <button class="btn btn-ghost" onclick="pauseTimer()">Pause</button>
+        <button class="btn btn-ghost" onclick="resetTimer()">Reset</button>
+      </div>
+      <div class="flex" style="justify-content:center;">
+        <button class="btn btn-ghost" onclick="setMode(25)">Focus 25m</button>
+        <button class="btn btn-ghost" onclick="setMode(5)">Break 5m</button>
+        <button class="btn btn-ghost" onclick="setMode(15)">Long Break 15m</button>
+      </div>
+      <div class="stat-grid" style="margin-top:20px;">
+        <div class="stat-card"><div class="value" id="streak-value">0</div><div class="label">Day Streak 🔥</div></div>
+        <div class="stat-card"><div class="value" id="sessions-value">0</div><div class="label">Sessions Today</div></div>
+      </div>
+    </div>
+
+    <!-- Mind Map -->
+    <div class="card">
+      <h3>🧭 AI Mind Map</h3>
+      <p class="muted">A visual web of keywords from your selected lecture.</p>
+      <select id="lecture-select" style="margin-bottom:10px;"></select>
+      <canvas id="mindmap-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- 🌲 Semester Skill Tree & Knowledge Graph -->
+  <div class="card" style="margin-top:24px;">
+    <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
+      <div>
+        <h3 style="margin:0;">🌲 Semester Skill Tree & Course Knowledge Graph</h3>
+        <p class="muted" style="margin:4px 0 0;">Visualizes prerequisite progression across all lectures in your semester. Click any node to open notes!</p>
+      </div>
+      <span class="tag" style="background:#2A9D8F; color:#fff;">🎮 Gamified Knowledge Progression</span>
+    </div>
+    <div style="margin-top:16px;">
+      <canvas id="skilltree-canvas" style="width:100%; height:320px; background:var(--paper); border:1px dashed var(--border); border-radius:10px;"></canvas>
+    </div>
+    <div id="tree-node-details" class="muted" style="margin-top:8px; text-align:center;">
+      Hover or click a node in the tree to explore connected prerequisite concepts.
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">Focus & Knowledge tools powered 100% offline by NotesPilot AI.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/focus.js"></script>
+</body>
+</html>

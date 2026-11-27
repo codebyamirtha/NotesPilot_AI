@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Notes - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container">
+  <div class="flex-between" style="flex-wrap:wrap; gap:12px;">
+    <h2>📒 My Notes</h2>
+    <div class="flex" style="gap:8px;">
+      <select id="tag-filter" onchange="filterByTag()" style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+        <option value="All">🏷️ All Subject Tags</option>
+      </select>
+      <input type="text" id="search-input" placeholder="Search notes..." style="width:200px;" />
+      <button class="btn btn-ghost" onclick="searchNotes()">Search</button>
+    </div>
+  </div>
+
+  <div class="grid-2" style="align-items:start;">
+    <!-- Lecture history list -->
+    <div class="card">
+      <div class="flex-between">
+        <h3>Lecture History</h3>
+        <span id="lecture-count-badge" class="tag">0 notes</span>
+      </div>
+      <div id="lecture-list"><p class="muted">Loading...</p></div>
+      <div id="search-results"></div>
+    </div>
+
+    <!-- Selected lecture's smart notes -->
+    <div class="card" id="notes-panel">
+      <p class="muted">Select a lecture from the list to view its AI-generated smart notes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Container for 1-Page Cheat Sheet & Exam Paper -->
+<div id="app-modal" class="modal-overlay hidden">
+  <div class="modal-content" id="modal-body">
+    <!-- Dynamic Modal Content -->
+  </div>
+</div>
+
+<footer class="app-footer">Notes are generated automatically the moment you save a recording.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/notes.js"></script>
+</body>
+</html>

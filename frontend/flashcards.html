@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashcards & Spaced Repetition (SRS) - NotesPilot AI</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar" id="navbar-mount"></header>
+
+  <main class="container" style="max-width:960px; padding:24px 16px;">
+    <!-- Page Header & Mode Selector -->
+    <div class="flex-between" style="flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:20px;">
+      <div>
+        <h2 style="margin:0; font-size:1.6rem; display:flex; align-items:center; gap:8px;">
+          🗂️ Interactive Study Flashcards
+        </h2>
+        <p class="muted" style="margin:4px 0 0; font-size:0.88rem;">
+          Master your lectures with 3D Flip Cards & the <strong>Leitner Spaced Repetition (SRS)</strong> algorithm.
+        </p>
+      </div>
+
+      <div class="flex" style="gap:10px; flex-wrap:wrap; align-items:center;">
+        <select id="deck-select" class="form-control" style="min-width:240px; font-weight:600;" onchange="loadSelectedDeck()">
+          <option value="">Loading your lecture decks...</option>
+        </select>
+        <button class="btn btn-ghost" onclick="shuffleCurrentDeck()" title="Shuffle card order">🔀 Shuffle</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="flashcards-empty" class="card hidden" style="text-align:center; padding:48px 20px;">
+      <div style="font-size:3rem; margin-bottom:12px;">📚</div>
+      <h3>No Flashcards Found</h3>
+      <p class="muted" style="max-width:480px; margin:0 auto 18px;">
+        Record or import a lecture to automatically generate interactive flashcard study decks from definitions, formulas, and highlights!
+      </p>
+      <a href="record.html" class="btn btn-accent">🎙️ Record Lecture Now</a>
+    </div>
+
+    <!-- Active Study Workspace -->
+    <div id="flashcards-workspace" class="hidden">
+      <!-- Deck Stats & Leitner Mastery Progress -->
+      <div class="card" style="margin-bottom:18px; padding:14px 18px;">
+        <div class="flex-between" style="flex-wrap:wrap; gap:10px; align-items:center;">
+          <div class="flex" style="gap:8px; align-items:center;">
+            <span class="tag" id="deck-subject-tag" style="font-size:0.85rem; font-weight:700;">Subject</span>
+            <span class="muted" id="deck-teacher-label" style="font-size:0.82rem;"></span>
+          </div>
+
+          <div class="flex" style="gap:14px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:0.85rem; font-weight:600;">
+              Card <strong id="card-current-index">1</strong> of <strong id="card-total-count">0</strong>
+            </span>
+            <span class="tag" style="background:rgba(42,157,143,0.15); color:#2A9D8F; font-weight:700;">
+              🏆 <span id="deck-mastery-percent">0%</span> Mastered
+            </span>
+          </div>
+        </div>
+
+        <!-- Leitner Mastery Level Meter -->
+        <div class="leitner-meter" style="margin-top:12px;">
+          <div class="leitner-meter-bar">
+            <div id="leitner-fill" class="leitner-meter-fill" style="width:0%;"></div>
+          </div>
+          <div class="flex-between" style="font-size:0.75rem; color:var(--ink-soft); margin-top:4px;">
+            <span>Box 1: New / Again</span>
+            <span>Box 2: Learning</span>
+            <span>Box 3: Reviewing</span>
+            <span>Box 4: Retaining</span>
+            <span>Box 5: Mastered ⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D Interactive Flip Flashcard Scene -->
+      <div class="flashcard-scene" onclick="flipCard()">
+        <div class="flashcard-card" id="flashcard-element">
+          <!-- Front Face -->
+          <div class="flashcard-face flashcard-front">
+            <div class="flashcard-header">
+              <span class="tag" id="card-type-tag">📌 Definition</span>
+              <button type="button" class="card-audio-btn" onclick="event.stopPropagation(); speakCardFront()" title="Listen to pronunciation (R)">
+                🔊 Pronounce
+              </button>
+            </div>
+            <div class="flashcard-body" id="card-front-content">
+              Loading prompt...
+            </div>
+            <div class="flashcard-footer">
+              <span class="muted" id="card-hint-text">💡 Tap card or press Space to flip</span>
+            </div>
+          </div>
+
+          <!-- Back Face -->
+          <div class="flashcard-face flashcard-back">
+            <div class="flashcard-header">
+              <span class="tag" style="background:rgba(42,157,143,0.2); color:#2A9D8F; font-weight:700;">✅ Answer & Explanation</span>
+              <button type="button" class="card-audio-btn" onclick="event.stopPropagation(); speakCardBack()" title="Listen to explanation (R)">
+                🔊 Listen
+              </button>
+            </div>
+            <div class="flashcard-body" id="card-back-content">
+              Loading answer...
+            </div>
+            <div class="flashcard-footer">
+              <span class="muted">🎯 Select your recall level below to schedule review</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation & Flip Controls -->
+      <div class="flex-between" style="margin-top:16px; align-items:center;">
+        <button class="btn btn-ghost" onclick="prevCard()" id="btn-prev-card" title="Previous card (Left Arrow)">
+          ← Previous
+        </button>
+
+        <button class="btn btn-primary" onclick="flipCard()" id="btn-flip-card" style="padding:8px 24px;">
+          🔄 Flip Card (Space)
+        </button>
+
+        <button class="btn btn-ghost" onclick="nextCard()" id="btn-next-card" title="Next card (Right Arrow)">
+          Next →
+        </button>
+      </div>
+
+      <!-- Leitner SRS Rating Controls Bar -->
+      <div class="card srs-controls-card" style="margin-top:18px; padding:16px 20px;">
+        <div style="text-align:center; margin-bottom:10px;">
+          <span style="font-size:0.88rem; font-weight:700; color:var(--ink);">
+            How easily did you recall this answer?
+          </span>
+          <p class="muted" style="margin:2px 0 0; font-size:0.78rem;">
+            Your response tunes the Leitner Spaced Repetition schedule for maximum long-term memory retention.
+          </p>
+        </div>
+
+        <div class="srs-button-grid">
+          <button class="srs-btn srs-again" onclick="rateCard(1)" title="Reset to Box 1 (1 min review)">
+            <span class="srs-badge">1</span>
+            <strong>🔴 Again</strong>
+            <span class="srs-sub">&lt; 1 min</span>
+          </button>
+
+          <button class="srs-btn srs-hard" onclick="rateCard(2)" title="Slight recall difficulty (10 min review)">
+            <span class="srs-badge">2</span>
+            <strong>🟠 Hard</strong>
+            <span class="srs-sub">10 mins</span>
+          </button>
+
+          <button class="srs-btn srs-good" onclick="rateCard(3)" title="Good recall (1 day review)">
+            <span class="srs-badge">3</span>
+            <strong>🟢 Good</strong>
+            <span class="srs-sub">1 day</span>
+          </button>
+
+          <button class="srs-btn srs-easy" onclick="rateCard(4)" title="Perfect recall (+2 boxes, 4 days)">
+            <span class="srs-badge">4</span>
+            <strong>🔵 Easy</strong>
+            <span class="srs-sub">4 days</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts Cheatsheet Bar -->
+      <div class="card" style="margin-top:14px; padding:10px 16px; background:var(--paper);">
+        <div class="flex-between" style="font-size:0.8rem; color:var(--ink-soft); flex-wrap:wrap; gap:8px;">
+          <span>⌨️ <strong>Shortcuts:</strong> <code>Space</code> to Flip</span>
+          <span><code>1</code> Again · <code>2</code> Hard · <code>3</code> Good · <code>4</code> Easy</span>
+          <span><code>←</code> / <code>→</code> Prev / Next</span>
+          <span><code>R</code> Read Aloud</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+  <script src="js/flashcards.js"></script>
+</body>
+</html>

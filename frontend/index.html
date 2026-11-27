@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NotesPilot AI - Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <div class="auth-wrapper">
+    <div class="auth-card card">
+      <h2 style="text-align:center;">Notes<span style="color:var(--accent-amber)">Pilot</span> AI</h2>
+      <p class="muted" style="text-align:center; margin-bottom:20px;">Your intelligent classroom learning assistant</p>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="active" onclick="switchTab('login')">Login</button>
+        <button id="tab-register" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" required placeholder="you@college.edu" />
+
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" required placeholder="••••••••" />
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:18px;">Log In</button>
+        <p id="login-msg"></p>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="hidden">
+        <label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" required placeholder="Amirthavarrshni S" />
+
+        <label for="reg-email">Email</label>
+        <input type="email" id="reg-email" required placeholder="you@college.edu" />
+
+        <label for="reg-role">I am a</label>
+        <select id="reg-role">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+        </select>
+
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" required minlength="6" placeholder="At least 6 characters" />
+
+        <button type="submit" class="btn btn-accent" style="width:100%; margin-top:18px;">Create Account</button>
+        <p id="register-msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+
+</html>

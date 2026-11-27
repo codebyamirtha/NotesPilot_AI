@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Attendance Management - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<!-- Lightweight QR Code generator from CDN with fallback -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container">
+
+  <!-- Header & Quick Actions -->
+  <div class="flex-between" style="flex-wrap:wrap; gap:12px; margin-bottom: 20px;">
+    <div>
+      <h2>📋 Smart Attendance Tracker</h2>
+      <p class="muted" id="att-live-date-str">Loading date...</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="openQrModal()" style="background: var(--accent-blue);">
+        📱 Scan QR / Enter PIN
+      </button>
+      <button class="btn btn-accent" onclick="openQuickCheckInModal()">
+        ⚡ Quick Check-in
+      </button>
+      <button class="btn btn-ghost" onclick="exportAttendanceCsv()">
+        📥 Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Low Attendance Alert Notification Banner -->
+  <div id="att-shortage-alert" class="card hidden" style="background: rgba(193, 102, 107, 0.08); border-left: 4px solid var(--rule-red); padding: 16px 20px; margin-bottom: 22px;">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <span style="font-size: 1.8rem; line-height: 1;">⚠️</span>
+        <div>
+          <h4 style="color: var(--rule-red); margin: 0 0 4px;">Low Attendance Warning (Below 75% Requirement)</h4>
+          <p id="att-shortage-desc" class="muted" style="margin: 0; font-size: 0.92rem;">
+            Your attendance is currently below the required 75% threshold.
+          </p>
+          <p id="att-shortage-remedy" style="margin: 6px 0 0; font-weight: 600; color: var(--ink); font-size: 0.88rem;">
+            Loading remedy projection...
+          </p>
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="switchTab('overview')">View Remediation Plan</button>
+    </div>
+  </div>
+
+  <!-- Top Stat Cards -->
+  <div class="stat-grid" id="att-stat-grid">
+    <div class="stat-card">
+      <div class="value" id="stat-overall-pct">--%</div>
+      <div class="label">Overall Attendance</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="stat-classes-attended" style="color: var(--accent-blue);">--</div>
+      <div class="label">Attended / Total Classes</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="stat-learning-hours" style="color: var(--sage);">-- hrs</div>
+      <div class="label">Total Learning Hours</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="stat-status-health">--</div>
+      <div class="label">Attendance Status</div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="att-nav-tabs">
+    <button class="att-tab-btn active" id="tab-btn-overview" onclick="switchTab('overview')">📊 Overview & Projection</button>
+    <button class="att-tab-btn" id="tab-btn-calendar" onclick="switchTab('calendar')">📅 Attendance Calendar</button>
+    <button class="att-tab-btn" id="tab-btn-history" onclick="switchTab('history')">📜 Attendance History</button>
+    <button class="att-tab-btn" id="tab-btn-monthly" onclick="switchTab('monthly')">📈 Monthly Reports</button>
+    <button class="att-tab-btn" id="tab-btn-teacher" onclick="switchTab('teacher')">👨‍🏫 Teacher / Admin View</button>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 1: OVERVIEW & ATTENDANCE PROJECTION CALCULATOR -->
+  <!-- ============================================================== -->
+  <div id="tab-content-overview" class="att-tab-pane">
+    
+    <!-- Attendance Projection Calculator Card -->
+    <div class="card">
+      <div class="flex-between" style="flex-wrap: wrap; gap: 8px;">
+        <div>
+          <h3>🎯 Smart Attendance Projection Calculator</h3>
+          <p class="muted" style="margin-top: 4px;">Calculate how many upcoming classes you must attend to achieve or maintain your target attendance percentage.</p>
+        </div>
+        <span class="tag" style="background: rgba(232, 163, 61, 0.15); color: var(--ink);">AI Forecast</span>
+      </div>
+
+      <div class="projection-box">
+        <label style="margin-top:0; font-weight:600;">Select Your Target Attendance Goal:</label>
+        <div class="projection-targets">
+          <button class="target-pill active" onclick="setProjectionTarget(75)">🎯 75% (Minimum Standard)</button>
+          <button class="target-pill" onclick="setProjectionTarget(80)">🎯 80% (Safe Target)</button>
+          <button class="target-pill" onclick="setProjectionTarget(85)">🎯 85% (High Honor)</button>
+          <button class="target-pill" onclick="setProjectionTarget(90)">🎯 90% (Distinction)</button>
+        </div>
+
+        <div id="projection-result-box" style="margin-top: 16px; padding: 14px 18px; border-radius: 10px; background: var(--card-bg); border: 1px solid var(--border);">
+          <div style="font-size: 1.05rem; font-weight: 600;" id="projection-result-title">Calculating projection...</div>
+          <div class="muted" style="margin-top: 6px; font-size: 0.9rem;" id="projection-result-subtitle">...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject-Wise Attendance Cards -->
+    <div class="card" style="margin-top: 24px;">
+      <div class="flex-between" style="flex-wrap:wrap; gap:8px;">
+        <div>
+          <h3>📚 Subject-Wise Attendance Breakdown</h3>
+          <p class="muted" style="margin-top: 4px;">Track attendance rate, total hours, and shortage status per subject.</p>
+        </div>
+      </div>
+
+      <div class="subject-grid" id="subject-cards-grid">
+        <p class="muted">Loading subject statistics...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 2: INTERACTIVE VISUAL CALENDAR -->
+  <!-- ============================================================== -->
+  <div id="tab-content-calendar" class="att-tab-pane hidden">
+    <div class="card">
+      <div class="calendar-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h3 id="cal-month-year-label" style="margin: 0;">August 2026</h3>
+          <div class="flex" style="gap: 6px;">
+            <button class="btn btn-ghost" style="padding: 4px 10px;" onclick="navigateCalendar(-1)">◀ Prev</button>
+            <button class="btn btn-ghost" style="padding: 4px 10px;" onclick="jumpToCurrentMonth()">Today</button>
+            <button class="btn btn-ghost" style="padding: 4px 10px;" onclick="navigateCalendar(1)">Next ▶</button>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap: 12px; font-size: 0.82rem; flex-wrap: wrap;">
+          <span style="display:flex; align-items:center; gap:4px;"><span class="cal-dot present"></span> Present</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span class="cal-dot late"></span> Late</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span class="cal-dot partial"></span> Partial</span>
+          <span style="display:flex; align-items:center; gap:4px;"><span class="cal-dot absent"></span> Absent</span>
+        </div>
+      </div>
+
+      <!-- Calendar Days Header -->
+      <div class="calendar-grid" style="margin-bottom: 6px;">
+        <div class="calendar-day-header">Sun</div>
+        <div class="calendar-day-header">Mon</div>
+        <div class="calendar-day-header">Tue</div>
+        <div class="calendar-day-header">Wed</div>
+        <div class="calendar-day-header">Thu</div>
+        <div class="calendar-day-header">Fri</div>
+        <div class="calendar-day-header">Sat</div>
+      </div>
+
+      <!-- Calendar Grid Cells -->
+      <div class="calendar-grid" id="calendar-cells-container">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 3: ATTENDANCE HISTORY & NOTES INTEGRATION -->
+  <!-- ============================================================== -->
+  <div id="tab-content-history" class="att-tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0;">📜 Detailed Attendance History</h3>
+          <p class="muted" style="margin: 4px 0 0;">Filterable log of all classroom sessions with direct links to generated notes & quizzes.</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input type="text" id="history-search" placeholder="🔍 Search subject, teacher, day..." style="width: 220px; padding: 7px 12px;" oninput="filterHistory()" />
+          <select id="history-subject-filter" style="width: 160px; padding: 7px 12px;" onchange="filterHistory()">
+            <option value="all">All Subjects</option>
+          </select>
+          <select id="history-status-filter" style="width: 140px; padding: 7px 12px;" onchange="filterHistory()">
+            <option value="all">All Statuses</option>
+            <option value="present">Present</option>
+            <option value="late">Late</option>
+            <option value="partial">Partial</option>
+            <option value="absent">Absent</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="att-table-container">
+        <table class="att-table">
+          <thead>
+            <tr>
+              <th>Date & Day</th>
+              <th>Subject / Tag</th>
+              <th>Teacher</th>
+              <th>Check-in / Check-out</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Method</th>
+              <th>Linked Notes & Quiz</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body">
+            <tr><td colspan="8" style="text-align:center;" class="muted">Loading history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 4: QR CODE SCANNER & CHECK-IN -->
+  <!-- ============================================================== -->
+  <div id="tab-content-qr" class="att-tab-pane hidden">
+    <div class="grid-2">
+      <!-- QR Check-in by PIN or Code -->
+      <div class="card">
+        <h3>📱 Student Check-in via Code</h3>
+        <p class="muted">Enter the 6-digit Session PIN displayed on your teacher's projector or screen.</p>
+        
+        <form id="pin-checkin-form" onsubmit="handlePinCheckIn(event)" style="margin-top: 16px;">
+          <label for="input-session-pin">Session PIN / Code (e.g. NP-4821):</label>
+          <input type="text" id="input-session-pin" placeholder="Enter session PIN (e.g. NP-4821)" required style="text-transform: uppercase; font-family: var(--font-mono); font-size: 1.1rem; letter-spacing: 2px;" />
+          
+          <label for="input-pin-subject">Subject (optional if PIN provided):</label>
+          <input type="text" id="input-pin-subject" placeholder="e.g. Python Programming" />
+          
+          <button type="submit" class="btn btn-primary" style="margin-top: 16px; width: 100%; justify-content: center;">
+            ✅ Mark Attendance Now
+          </button>
+          <div id="pin-checkin-msg"></div>
+        </form>
+      </div>
+
+      <!-- Live Web Check-in Demo / Simulator -->
+      <div class="card">
+        <h3>📸 Live QR Code Scanner Simulator</h3>
+        <p class="muted">Scan lecture QR code using your device's camera or test instant check-in.</p>
+        
+        <div class="qr-container" style="margin-top: 14px;">
+          <div id="qr-camera-box" style="width: 220px; height: 180px; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; flex-direction: column; gap: 8px; position: relative; overflow: hidden;">
+            <video id="qr-video-preview" style="width: 100%; height: 100%; object-fit: cover; display: none;" autoplay playsinline></video>
+            <div id="qr-camera-placeholder">
+              <div style="font-size: 2rem;">📷</div>
+              <div style="font-size: 0.8rem; color: #aaa;">Camera Preview</div>
+            </div>
+            <div style="position: absolute; border: 2px solid var(--accent-amber); width: 140px; height: 120px; border-radius: 8px; pointer-events: none; opacity: 0.7;"></div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 14px;">
+            <button class="btn btn-ghost" onclick="toggleWebcamScanner()" id="btn-toggle-cam">Start Camera Scan</button>
+            <button class="btn btn-accent" onclick="simulateQrScan()">⚡ Test QR Scan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 5: TEACHER / ADMIN MANAGEMENT VIEW -->
+  <!-- ============================================================== -->
+  <div id="tab-content-teacher" class="att-tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="flex-wrap:wrap; gap:12px;">
+        <div>
+          <h3>👨‍🏫 Teacher Session & Attendance Roster</h3>
+          <p class="muted">Generate active lecture session QR codes for students to scan, view live attendance rosters, and manage student statuses.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateSessionModal()">
+          ➕ Create New Lecture Session & QR Code
+        </button>
+      </div>
+
+      <!-- Active Sessions List -->
+      <div style="margin-top: 20px;">
+        <h4>Active & Recent Class Sessions</h4>
+        <div id="teacher-sessions-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 10px;">
+          <p class="muted">Loading sessions...</p>
+        </div>
+      </div>
+
+      <!-- Class Roster Table -->
+      <div style="margin-top: 24px;">
+        <div class="flex-between" style="flex-wrap:wrap; gap:10px; margin-bottom: 12px;">
+          <h4 style="margin:0;">Student Class Roster</h4>
+          <div class="flex" style="gap:8px;">
+            <select id="teacher-roster-subject-filter" style="width:160px; padding:6px 10px;" onchange="loadTeacherRoster()">
+              <option value="all">All Subjects</option>
+            </select>
+            <button class="btn btn-ghost" style="padding:6px 12px;" onclick="loadTeacherRoster()">🔄 Refresh Roster</button>
+          </div>
+        </div>
+
+        <div class="att-table-container">
+          <table class="att-table">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Subject</th>
+                <th>Date & Day</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Action / Override</th>
+              </tr>
+            </thead>
+            <tbody id="teacher-roster-tbody">
+              <tr><td colspan="8" style="text-align:center;" class="muted">Loading roster...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- TAB 4: MONTHLY REPORTS -->
+  <!-- ============================================================== -->
+  <div id="tab-content-monthly" class="att-tab-pane hidden">
+    <div class="card">
+      <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
+        <div>
+          <h3>📈 Monthly Learning & Attendance Reports</h3>
+          <p class="muted">Comprehensive breakdown of total attended classes, learning hours, and attendance percentages by month.</p>
+        </div>
+        <button class="btn btn-primary" onclick="exportAttendanceCsv()">📥 Export Full Report (CSV)</button>
+      </div>
+
+      <div class="att-table-container" style="margin-top: 16px;">
+        <table class="att-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Total Scheduled</th>
+              <th>Attended Classes</th>
+              <th>Total Hours</th>
+              <th>Attendance %</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="monthly-report-tbody">
+            <tr><td colspan="6" style="text-align:center;" class="muted">Loading monthly report...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: QUICK CHECK-IN -->
+<!-- ============================================================== -->
+<div id="quick-checkin-modal" class="att-modal-overlay hidden">
+  <div class="att-modal-content">
+    <button class="att-modal-close" onclick="closeQuickCheckInModal()">×</button>
+    <h3>⚡ Quick Student Check-in</h3>
+    <p class="muted">Mark your attendance for today's lecture session.</p>
+
+    <form onsubmit="handleQuickCheckIn(event)" style="margin-top:14px;">
+      <label for="quick-subject">Subject Name:</label>
+      <input type="text" id="quick-subject" placeholder="e.g. Python Programming" required />
+
+      <label for="quick-tag">Subject Code / Tag (optional):</label>
+      <input type="text" id="quick-tag" placeholder="e.g. CS101" />
+
+      <label for="quick-teacher">Teacher / Instructor:</label>
+      <input type="text" id="quick-teacher" placeholder="e.g. Prof. Amirthavarrshni S" />
+
+      <label for="quick-duration">Class Duration (minutes):</label>
+      <input type="number" id="quick-duration" value="60" min="15" max="240" />
+
+      <div style="display:flex; gap:10px; margin-top:20px; justify-content: flex-end;">
+        <button type="button" class="btn btn-ghost" onclick="closeQuickCheckInModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Mark Present ✅</button>
+      </div>
+      <div id="quick-modal-msg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: TEACHER CREATE SESSION & QR CODE -->
+<!-- ============================================================== -->
+<div id="teacher-session-modal" class="att-modal-overlay hidden">
+  <div class="att-modal-content">
+    <button class="att-modal-close" onclick="closeCreateSessionModal()">×</button>
+    <h3>➕ Create Live Lecture Session</h3>
+    <p class="muted">Generate a unique session QR Code and 6-digit PIN for students to scan in class.</p>
+
+    <form id="teacher-session-form" onsubmit="handleCreateTeacherSession(event)" style="margin-top:14px;">
+      <label for="session-subject">Subject Title:</label>
+      <input type="text" id="session-subject" placeholder="e.g. Python Programming" required />
+
+      <label for="session-tag">Subject Tag / Code:</label>
+      <input type="text" id="session-tag" placeholder="e.g. CS201" />
+
+      <div class="grid-2" style="margin-top:0;">
+        <div>
+          <label for="session-start">Start Time:</label>
+          <input type="time" id="session-start" required />
+        </div>
+        <div>
+          <label for="session-end">End Time:</label>
+          <input type="time" id="session-end" required />
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:20px; justify-content: flex-end;">
+        <button type="button" class="btn btn-ghost" onclick="closeCreateSessionModal()">Cancel</button>
+        <button type="submit" id="btn-generate-session" class="btn btn-primary">Generate Session & QR 🔲</button>
+      </div>
+      <div id="teacher-modal-msg"></div>
+    </form>
+
+    <!-- Display QR Code Container once created -->
+    <div id="generated-session-qr-view" class="hidden" style="margin-top:20px; text-align:center; border-top: 1px solid var(--border); padding-top: 16px;">
+      <h4 style="margin: 0 0 6px; color:var(--sage);">🎉 Session QR Code Created!</h4>
+      <p class="muted" style="margin: 0 0 10px;">Display this on screen for students to scan in class:</p>
+      
+      <div class="qr-code-canvas-wrapper" id="generated-qr-canvas-holder"></div>
+      
+      <div>
+        <div class="session-pin-badge" id="generated-session-pin-text">NP-0000</div>
+      </div>
+      <p class="muted" style="font-size:0.85rem;">Session Code: <strong id="generated-session-code-sub">NP-0000</strong></p>
+
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn btn-accent" id="btn-quick-test-checkin" onclick="quickCheckInToGeneratedSession()">⚡ Mark Attendance for this Session</button>
+        <button class="btn btn-ghost" onclick="closeCreateSessionModal(); switchTab('teacher');">👥 View Class Roster</button>
+      </div>
+      <div id="generated-session-action-msg" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: CALENDAR DAY DETAILS DRAWER -->
+<!-- ============================================================== -->
+<div id="cal-day-modal" class="att-modal-overlay hidden">
+  <div class="att-modal-content">
+    <button class="att-modal-close" onclick="closeCalendarDayModal()">×</button>
+    <h3 id="cal-day-modal-title">Attendance for Date</h3>
+    <p class="muted" id="cal-day-modal-subtitle">Class sessions on this day:</p>
+
+    <div id="cal-day-sessions-list" style="margin-top:14px;">
+      <!-- Populated via JS -->
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">NotesPilot AI · Smart Classroom Learning & Attendance Assistant</footer>
+
+<script src="js/app.js"></script>
+<script src="js/attendance.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study Planner & Timetable - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container" style="max-width:1200px;">
+  <div class="flex-between" style="flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+    <div>
+      <h2 style="margin:0 0 4px 0;">📅 Study Planner & Timetable</h2>
+      <p class="muted" style="margin:0;">Visual weekly scheduling & AI-driven exam study planning.</p>
+    </div>
+  </div>
+
+  <!-- Planner View Switcher Tabs -->
+  <div class="planner-nav-tabs">
+    <button class="planner-tab-btn active" id="tab-btn-timetable" onclick="switchPlannerTab('timetable')">
+      🗓️ Weekly Timetable Grid
+    </button>
+    <button class="planner-tab-btn" id="tab-btn-sprint" onclick="switchPlannerTab('sprint')">
+      🎯 AI Exam Sprint Planner
+    </button>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- TAB 1: VISUAL WEEKLY TIMETABLE GRID                     -->
+  <!-- ======================================================= -->
+  <div id="timetable-tab-content">
+    <!-- Summary Stats Ribbon -->
+    <div class="timetable-summary-grid" id="tt-stats-grid">
+      <div class="tt-stat-card"><div class="val" id="tt-stat-hours">0 hrs</div><div class="lbl">Total Scheduled</div></div>
+      <div class="tt-stat-card"><div class="val" id="tt-stat-completed">0 hrs</div><div class="lbl">Completed Study</div></div>
+      <div class="tt-stat-card"><div class="val" id="tt-stat-progress">0%</div><div class="lbl">Weekly Adherence</div></div>
+      <div class="tt-stat-card"><div class="val" id="tt-stat-subjects">0</div><div class="lbl">Active Subjects</div></div>
+    </div>
+
+    <!-- Subject Distribution Breakdown -->
+    <div class="subject-dist-container" id="tt-dist-card">
+      <div class="flex-between">
+        <h4 style="margin:0; font-size:0.92rem;">📊 Weekly Subject Commitment Distribution</h4>
+        <span class="muted" id="dist-total-lbl" style="font-size:0.8rem;">0 Total Hours</span>
+      </div>
+      <div class="subject-dist-bar" id="subject-dist-bar">
+        <div class="subject-dist-segment" style="width:100%; background:var(--paper-line);"></div>
+      </div>
+      <div class="subject-dist-legend" id="subject-dist-legend">
+        <span class="muted">No study sessions scheduled yet. Click any slot or auto-generate below!</span>
+      </div>
+    </div>
+
+    <!-- Filter & Action Controls Bar -->
+    <div class="timetable-actions-bar">
+      <div class="subject-filter-chips" id="subject-filter-container">
+        <span class="sub-filter-pill active" onclick="filterBySubject('ALL')">🌐 All Subjects</span>
+      </div>
+      <div class="flex" style="gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-accent" onclick="autoScheduleTimetable()" title="Auto-populate balanced schedule from your recorded subjects">
+          ⚡ Auto-Schedule from Subjects
+        </button>
+        <button class="btn btn-primary" onclick="openSessionModal()" title="Add a custom study block">
+          ➕ Add Session
+        </button>
+        <button class="btn btn-ghost" onclick="clearTimetable()" title="Reset weekly timetable" style="border-color:#E63946; color:#E63946; padding:6px 12px;">
+          🗑️ Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- The 7-Day Visual Calendar Table -->
+    <div class="timetable-wrapper">
+      <table class="timetable-grid-table" id="timetable-table">
+        <thead>
+          <tr id="timetable-header-row">
+            <th style="width:85px;">Time</th>
+            <th id="th-monday">Mon</th>
+            <th id="th-tuesday">Tue</th>
+            <th id="th-wednesday">Wed</th>
+            <th id="th-thursday">Thu</th>
+            <th id="th-friday">Fri</th>
+            <th id="th-saturday">Sat</th>
+            <th id="th-sunday">Sun</th>
+          </tr>
+        </thead>
+        <tbody id="timetable-tbody">
+          <!-- Populated dynamically via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- TAB 2: AI EXAM SPRINT PLANNER                           -->
+  <!-- ======================================================= -->
+  <div id="sprint-tab-content" class="hidden">
+    <!-- Generator Setup Card -->
+    <div class="card" id="generator-card" style="margin-bottom:24px;">
+      <div class="flex-between">
+        <h3 style="margin:0;">🎯 AI Exam Sprint Generator</h3>
+        <span class="muted" style="font-size:0.85rem;">Continuous Adaptive Review</span>
+      </div>
+      <p class="muted" style="margin:6px 0 16px;">Set your target exam date and daily study capacity. NotesPilot AI will distribute all your lecture topics and quizzes into a daily study countdown.</p>
+      
+      <div class="grid-2" style="align-items:end;">
+        <div>
+          <label for="target-date">Exam / Test Target Date</label>
+          <input type="date" id="target-date" />
+        </div>
+        <div>
+          <label for="hours-per-day">Target Study Hours per Day</label>
+          <select id="hours-per-day" style="padding:10px; width:100%; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+            <option value="1">1 hour / day (Light review)</option>
+            <option value="2" selected>2 hours / day (Standard pace)</option>
+            <option value="3">3 hours / day (Intensive sprint)</option>
+            <option value="4">4+ hours / day (Exam crunch mode)</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex" style="margin-top:16px; justify-content:flex-end;">
+        <button class="btn btn-accent" id="gen-btn" onclick="generatePlan()">⚡ Generate Personalized Study Schedule</button>
+      </div>
+      <p id="gen-msg" style="margin-top:8px;"></p>
+    </div>
+
+    <!-- Active Plan Timetable View -->
+    <div class="card" id="planner-view">
+      <p class="muted">Loading study schedule...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================= -->
+<!-- SESSION MODAL (Create / Edit Study Block)               -->
+<!-- ======================================================= -->
+<div class="modal-overlay hidden" id="session-modal" onclick="if(event.target===this) closeSessionModal();">
+  <div class="modal-content" style="max-width:550px;">
+    <div class="flex-between" style="margin-bottom:14px;">
+      <h3 style="margin:0;" id="modal-title">➕ Add Study Session</h3>
+      <button class="btn btn-ghost" style="padding:4px 10px;" onclick="closeSessionModal()">✕</button>
+    </div>
+
+    <form id="session-form" onsubmit="handleSessionFormSubmit(event)">
+      <input type="hidden" id="modal-session-id" value="" />
+
+      <!-- Day & Time Row -->
+      <div class="grid-2" style="gap:12px; margin-bottom:12px;">
+        <div>
+          <label for="modal-day">Day of the Week</label>
+          <select id="modal-day" required style="width:100%; padding:9px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="wednesday">Wednesday</option>
+            <option value="thursday">Thursday</option>
+            <option value="friday">Friday</option>
+            <option value="saturday">Saturday</option>
+            <option value="sunday">Sunday</option>
+          </select>
+        </div>
+        <div>
+          <label>Time Slot</label>
+          <div class="flex" style="gap:6px;">
+            <input type="time" id="modal-start-time" value="09:00" required style="flex:1;" />
+            <span class="muted">to</span>
+            <input type="time" id="modal-end-time" value="10:30" required style="flex:1;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject Selector -->
+      <div style="margin-bottom:12px;">
+        <label for="modal-subject-select">Subject</label>
+        <div class="flex" style="gap:8px;">
+          <select id="modal-subject-select" onchange="onSubjectSelectChange()" style="flex:1; padding:9px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+            <!-- Populated via JS -->
+          </select>
+          <input type="text" id="modal-subject-custom" placeholder="Or enter subject name..." style="flex:1; display:none;" />
+        </div>
+      </div>
+
+      <!-- Topic / Objective -->
+      <div style="margin-bottom:12px;">
+        <label for="modal-topic">Topic / Study Objective</label>
+        <input type="text" id="modal-topic" placeholder="e.g. Binary Search Trees & Graph Algorithms" required />
+      </div>
+
+      <!-- Link to Recorded Lecture (Optional) -->
+      <div style="margin-bottom:12px;">
+        <label for="modal-lecture-link">Linked Lecture Note (Optional)</label>
+        <select id="modal-lecture-link" style="width:100%; padding:9px; border-radius:var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--ink);">
+          <option value="">-- None (Standalone study block) --</option>
+        </select>
+      </div>
+
+      <!-- Color Badge Palette -->
+      <div style="margin-bottom:14px;">
+        <label>Card Color Accent</label>
+        <div class="color-picker-palette" id="color-palette-mount">
+          <!-- Dots rendered via JS -->
+        </div>
+        <input type="hidden" id="modal-color" value="#4E8FB8" />
+      </div>
+
+      <!-- Notes / Goals -->
+      <div style="margin-bottom:18px;">
+        <label for="modal-notes">Notes / Session Goals (Optional)</label>
+        <textarea id="modal-notes" rows="2" placeholder="e.g. Solve 5 textbook exercises, review doubts with Student Supporter"></textarea>
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="flex-between">
+        <div>
+          <button type="button" id="modal-delete-btn" class="btn btn-ghost" onclick="deleteSessionFromModal()" style="border-color:#E63946; color:#E63946; display:none;">
+            🗑️ Delete Session
+          </button>
+        </div>
+        <div class="flex" style="gap:8px;">
+          <button type="button" class="btn btn-ghost" onclick="closeSessionModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="modal-save-btn">Save Session</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer class="app-footer">NotesPilot AI · Visual Timetable integrates directly with your classroom notes and lecture recordings.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/planner.js"></script>
+</body>
+</html>

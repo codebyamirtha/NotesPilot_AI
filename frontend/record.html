@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Record Lecture - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container">
+  <h2>🎙️ Record a Lecture</h2>
+  <p class="muted">Speak (or let the teacher speak near your device). NotesPilot AI converts speech to text live, then structures it into smart notes when you stop.</p>
+
+  <div class="card">
+    <div class="grid-3" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+      <div>
+        <label for="subject">Subject / Title</label>
+        <input type="text" id="subject" placeholder="e.g. Binary Trees & Algorithms" />
+      </div>
+      <div>
+        <label for="subjectTag">Subject Tag / Course</label>
+        <input type="text" id="subjectTag" placeholder="e.g. CS101, Biology, Math" list="existing-tags" />
+        <datalist id="existing-tags"></datalist>
+      </div>
+      <div>
+        <label for="teacher">Teacher / Speaker</label>
+        <input type="text" id="teacher" placeholder="e.g. Prof. Meenakshi" />
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div style="display:flex; gap:10px; margin:20px 0 10px; border-bottom:2px solid var(--border); flex-wrap:wrap;">
+      <button type="button" id="tab-mic" class="btn btn-primary" onclick="switchMode('mic')" style="border-radius:8px 8px 0 0;">🎙️ Speech Recording</button>
+      <button type="button" id="tab-handwritten" class="btn btn-ghost" onclick="switchMode('handwritten')" style="border-radius:8px 8px 0 0;">✍️ Handwritten Notes</button>
+      <button type="button" id="tab-file" class="btn btn-ghost" onclick="switchMode('file')" style="border-radius:8px 8px 0 0;">📄 Document Import (.txt, .md)</button>
+      <button type="button" id="tab-audio" class="btn btn-ghost" onclick="switchMode('audio')" style="border-radius:8px 8px 0 0;">🎵 Audio File Player (.mp3, .wav)</button>
+    </div>
+
+    <!-- Mic Panel -->
+    <div id="mic-panel" class="record-panel" style="text-align:center;">
+      <button id="mic-btn" class="mic-button" onclick="toggleRecording()">🎤</button>
+      <p id="rec-status" class="muted" style="margin-top:12px;">Tap the mic to start recording</p>
+
+      <!-- Audio DSP Hardware & Web Audio Enhancements Card -->
+      <div class="dsp-card">
+        <div class="flex-between" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <strong style="display:flex; align-items:center; gap:6px; font-size:0.92rem;">
+            🎛️ Audio Quality, Far-Field DSP & Speech Processing
+          </strong>
+          <span id="dsp-badge" class="dsp-status-badge">🟢 Studio DSP Ready</span>
+        </div>
+
+        <div class="dsp-toggle-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+          <!-- Noise Suppression Toggle -->
+          <label class="dsp-toggle-item" title="Reduces ambient fan noise, background classroom chatter, and keyboard clicks">
+            <input type="checkbox" id="dsp-noise-suppression" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🛡️ Noise Suppression</span>
+              <span class="dsp-desc">Filters background hum & room noise</span>
+            </div>
+          </label>
+
+          <!-- Echo Cancellation Toggle -->
+          <label class="dsp-toggle-item" title="Eliminates acoustic feedback loop between device speakers and microphone">
+            <input type="checkbox" id="dsp-echo-cancellation" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🔊 Echo Cancellation</span>
+              <span class="dsp-desc">Prevents speaker-to-mic feedback loops</span>
+            </div>
+          </label>
+
+          <!-- Automatic Gain Control Toggle -->
+          <label class="dsp-toggle-item" title="Automatically normalizes microphone sensitivity for both soft and loud voices">
+            <input type="checkbox" id="dsp-auto-gain" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🎚️ Auto Gain Control (AGC)</span>
+              <span class="dsp-desc">Auto-normalizes quiet and loud voices</span>
+            </div>
+          </label>
+
+          <!-- Far-Field Listening Toggle (Feature 1) -->
+          <label class="dsp-toggle-item" title="Amplifies faint lecturer speech from the back bench of large classrooms & lecture halls">
+            <input type="checkbox" id="dsp-far-field" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">📡 Far-Field Listening</span>
+              <span class="dsp-desc">Back-bench & distant lecturer boost (2x–4x)</span>
+            </div>
+          </label>
+
+          <!-- Mumble & Whisper Enhancer (Feature 3) -->
+          <label class="dsp-toggle-item" title="Boosts consonant frequencies (2.5kHz-5kHz) to clarify whispered words and mumbled phonemes">
+            <input type="checkbox" id="dsp-whisper-enhance" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🗣️ Whisper & Mumble EQ</span>
+              <span class="dsp-desc">Consonant clarity & faint vocal boost</span>
+            </div>
+          </label>
+
+          <!-- Overlapping Speech & Chatter Cleanup (Feature 2) -->
+          <label class="dsp-toggle-item" title="Filters out side-talk murmurs, overlapping chatter, and microphone echo loops">
+            <input type="checkbox" id="dsp-overlap-cleanup" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🛡️ Overlapping Speech Filter</span>
+              <span class="dsp-desc">Suppresses student side-chatter & echo</span>
+            </div>
+          </label>
+
+          <!-- Content-Based Academic Spelling (Feature 4) -->
+          <label class="dsp-toggle-item" title="Corrects acoustic misrecognitions (e.g. 'pie thon' -> Python, 'sequel' -> SQL, 'polly morphism' -> polymorphism)">
+            <input type="checkbox" id="dsp-content-spelling" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">📖 Content-Based Spelling</span>
+              <span class="dsp-desc">STEM, CS & medical phonetic dictionary</span>
+            </div>
+          </label>
+
+          <!-- Automatic Capitalization (Feature 5) -->
+          <label class="dsp-toggle-item" title="Auto-capitalizes technical acronyms (AI, SQL, CPU), proper nouns (Dijkstra, Turing), and sentences">
+            <input type="checkbox" id="dsp-auto-capitalize" checked onchange="onDspSettingChange()" />
+            <div class="dsp-info">
+              <span class="dsp-title">🔠 Auto-Capitalization</span>
+              <span class="dsp-desc">Acronyms (AI, API), proper nouns & sentences</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Far-Field Classroom Distance Multiplier Range -->
+        <div id="far-field-controls" style="margin-top:12px; padding:10px 14px; background:rgba(78,143,184,0.08); border-radius:8px; border:1px solid rgba(78,143,184,0.2); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.88rem; font-weight:600; color:var(--ink);">📡 Far-Field Distance Boost:</span>
+            <span id="far-field-val-label" class="tag" style="background:var(--accent-blue); color:white;">3.0x (Lecture Hall)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="range" id="far-field-gain-slider" min="1.0" max="4.0" step="0.5" value="3.0" style="width:140px; cursor:pointer;" oninput="onFarFieldGainChange(this.value)" />
+            <span class="muted" style="font-size:0.78rem;">1.0x (Desk) → 4.0x (Back Bench)</span>
+          </div>
+        </div>
+
+        <!-- Real-Time Waveform & VU Level Meter Visualizer -->
+        <div id="dsp-visualizer-container" class="dsp-visualizer-box" style="margin-top:12px;">
+          <canvas id="dsp-waveform-canvas" width="480" height="48" class="dsp-canvas"></canvas>
+          <div class="dsp-vu-meter-wrap">
+            <div class="dsp-vu-label"><span>Mic Level</span><span id="dsp-db-label">0%</span></div>
+            <div class="dsp-vu-track">
+              <div id="dsp-vu-bar" class="dsp-vu-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p id="browser-warning" class="error-msg hidden">
+        Your browser doesn't support live speech recognition. Please use Google Chrome,
+        or type/paste the lecture transcript manually below.
+      </p>
+    </div>
+
+    <!-- Handwritten Notes Upload Panel -->
+    <div id="handwritten-panel" class="record-panel hidden" style="padding:24px; border:2px dashed var(--accent-amber); background:var(--paper); border-radius:var(--radius); text-align:center;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">✍️</div>
+      <h4>Upload Handwritten Notebook Photos</h4>
+      <p class="muted">Select or drag & drop one or multiple handwritten notebook pages (<code>.jpg</code>, <code>.png</code>, <code>.webp</code>)</p>
+      <input type="file" id="handwritten-picker" multiple accept="image/png, image/jpeg, image/jpg, image/webp" style="display:none;" onchange="handleHandwrittenUploadSelect(event)" />
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('handwritten-picker').click()" style="margin-top:10px;">Select Handwritten Photos</button>
+      <div id="handwritten-preview-strip" style="display:flex; gap:8px; overflow-x:auto; margin-top:14px; justify-content:center; flex-wrap:wrap;"></div>
+      <p id="handwritten-file-info" class="muted" style="margin-top:8px; font-weight:600;"></p>
+    </div>
+
+    <!-- File Dropzone Panel -->
+    <div id="file-panel" class="record-panel hidden" style="padding:24px; border:2px dashed var(--accent-blue); background:var(--paper); border-radius:var(--radius); text-align:center;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">📁</div>
+      <h4>Drag & Drop a Document File Here</h4>
+      <p class="muted">Supports plain text <code>.txt</code> or Markdown <code>.md</code> lecture transcript files</p>
+      <input type="file" id="file-picker" accept=".txt,.md,.markdown" style="display:none;" onchange="handleFileSelect(event)" />
+      <button type="button" class="btn btn-ghost" onclick="document.getElementById('file-picker').click()" style="margin-top:10px;">Select File from Device</button>
+      <p id="file-info" class="muted" style="margin-top:8px; font-weight:600;"></p>
+    </div>
+
+    <!-- Audio Player / Import Panel -->
+    <div id="audio-panel" class="record-panel hidden" style="padding:24px; border:2px dashed var(--accent-amber); background:var(--paper); border-radius:var(--radius); text-align:center;">
+      <div style="font-size:2.5rem; margin-bottom:8px;">🎧</div>
+      <h4>Upload Pre-recorded Audio File</h4>
+      <p class="muted">Play your voice notes or Zoom lecture audio (<code>.mp3</code>, <code>.wav</code>, <code>.m4a</code>) while speech-transcribing or reviewing</p>
+      <input type="file" id="audio-picker" accept="audio/*" style="display:none;" onchange="handleAudioSelect(event)" />
+      <button type="button" class="btn btn-ghost" onclick="document.getElementById('audio-picker').click()" style="margin-top:10px;">Choose Audio File</button>
+      <div id="audio-player-container" style="margin-top:16px; display:none;">
+        <audio id="audio-player" controls style="width:100%; max-width:500px; margin:0 auto;"></audio>
+      </div>
+    </div>
+
+    <!-- Doubt Highlighting Mode Toolbar -->
+    <div class="doubt-mode-bar" style="margin-top:16px;">
+      <div class="flex-between" style="flex-wrap:wrap; gap:8px;">
+        <div class="flex" style="gap:10px; align-items:center; flex-wrap:wrap;">
+          <label class="doubt-mode-toggle-label" title="When active, pressing Space inserts a red doubt marker (🔴) at the current cursor position without adding blank spaces.">
+            <input type="checkbox" id="doubt-mode-toggle" checked onchange="toggleDoubtMode(this.checked)" />
+            <span class="doubt-mode-pill">🔴 Doubt Highlighting Mode: <strong id="doubt-mode-status">ACTIVE</strong></span>
+          </label>
+          <span id="doubt-count-badge" class="tag" style="background:rgba(230,57,70,0.15); color:#E63946; font-weight:600;">0 Doubts Marked 🔴</span>
+        </div>
+        <div class="flex" style="gap:6px;">
+          <button type="button" class="btn btn-ghost btn-sm" style="border-color:#E63946; color:#E63946;" onclick="insertDoubtMarkerAtCursor()" title="Mark doubt at current cursor position or end of speech">
+            🔴 Mark Doubt (Space)
+          </button>
+        </div>
+      </div>
+      <p class="muted" style="margin:6px 0 0; font-size:0.8rem;">
+        ⚡ <strong>Doubt Mode Active:</strong> Press the <code>Space</code> key (or tap <em>Mark Doubt</em>) whenever you have a doubt during speech/typing. A persistent red spot (🔴) will attach to that word without adding extra spaces.
+      </p>
+    </div>
+
+    <!-- 🎙️ Smart Punctuation & Speech Formatting Toolbar -->
+    <div class="smart-punct-bar" style="margin-top:12px;">
+      <div class="flex-between" style="flex-wrap:wrap; gap:8px; align-items:center;">
+        <div class="flex" style="gap:10px; align-items:center; flex-wrap:wrap;">
+          <label class="smart-punct-toggle-label" title="Automatically detects questions, commas, periods, capitalization, and converts spoken cues like 'comma' or 'full stop'.">
+            <input type="checkbox" id="smart-punct-toggle" checked onchange="toggleSmartPunctuation(this.checked)" />
+            <span class="smart-punct-pill">✨ Smart Punctuation: <strong id="smart-punct-status">ACTIVE</strong></span>
+          </label>
+          <span class="tag" style="background:rgba(42,157,143,0.15); color:#2A9D8F; font-weight:600;">🎙️ Speech Auto-Formatter</span>
+        </div>
+        <div class="flex" style="gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="formatCurrentTranscript()" title="Instantly punctuate, capitalize, and format the text box">
+            ✨ Auto-Punctuate & Format Now
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openSpokenCuesModal()" title="View supported spoken punctuation voice commands">
+            🗣️ Spoken Voice Cues
+          </button>
+        </div>
+      </div>
+      <p class="muted" style="margin:6px 0 0; font-size:0.8rem;">
+        💡 <strong>Voice Cues Supported:</strong> Speak commands like <em>"comma"</em>, <em>"full stop"</em>, <em>"question mark"</em>, or <em>"new paragraph"</em>. Natural pauses will automatically insert full stops and capitalize sentences.
+      </p>
+    </div>
+
+    <!-- 📝 300,000-Word Large Study Notes Capacity & Real-Time Counter Panel -->
+    <div class="word-counter-panel" style="margin-top:16px;">
+      <div class="flex-between" style="flex-wrap:wrap; gap:8px; align-items:center;">
+        <div>
+          <label style="margin:0; font-size:0.95rem; font-weight:700; color:var(--ink);">
+            📖 Lecture Content & Study Notes
+          </label>
+          <span class="muted" style="font-size:0.8rem;">Max capacity: <strong>300,000 words</strong> · Type, paste, or import extensive notes</span>
+        </div>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <span class="capacity-pill" id="counter-word-pill" title="Current word count">
+            📝 <span id="counter-current-words">0</span> / 300,000 words
+          </span>
+          <span class="capacity-pill" id="counter-remaining-pill" title="Remaining capacity" style="color:var(--sage);">
+            ⏳ <span id="counter-remaining-words">300,000</span> left
+          </span>
+          <span class="capacity-pill" id="counter-time-pill" title="Estimated reading time">
+            ⏱️ <span id="counter-reading-time">~0 min read</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Capacity Progress Bar -->
+      <div class="capacity-meter-bar">
+        <div id="capacity-progress-fill" class="capacity-meter-fill" style="width: 0%;"></div>
+      </div>
+
+      <!-- Live Dynamic Warning Alerts -->
+      <div id="capacity-warning-approach" class="capacity-warning-box capacity-warning-approach hidden">
+        <span>⚠️</span>
+        <span><strong>Approaching Capacity:</strong> You have used over 80% of the 300,000-word capacity (<span id="warn-remaining-words">60,000</span> words remaining).</span>
+      </div>
+
+      <div id="capacity-warning-max" class="capacity-warning-box capacity-warning-max hidden">
+        <span>🚫</span>
+        <span><strong>Maximum Limit Reached:</strong> 300,000 words reached. Additional text is safely paused to prevent loss or accidental truncation of your notes.</span>
+      </div>
+    </div>
+
+    <!-- 🧠 Real-Time Smart Structure, Far-Field & Speech Processing HUD -->
+    <div class="smart-structure-hud" id="smart-structure-hud" style="margin-bottom:10px;">
+      <div class="flex-between" style="flex-wrap:wrap; gap:8px; align-items:center;">
+        <div class="flex" style="gap:6px; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:0.84rem; font-weight:700; color:var(--ink);">🧠 Speech AI Live:</span>
+          <span class="structure-tag-pill" id="hud-pill-headings" title="Detected Headings & Subheadings">🏷️ <span id="hud-count-headings">0</span> Headings</span>
+          <span class="structure-tag-pill" id="hud-pill-defs" title="Extracted Definitions & Key Terms">📌 <span id="hud-count-defs">0</span> Definitions</span>
+          <span class="structure-tag-pill" id="hud-pill-formulas" title="Detected Formulas & Equations">➗ <span id="hud-count-formulas">0</span> Formulas</span>
+          <span class="structure-tag-pill slang-pill" id="hud-pill-slang" title="Slang, mumbles, cross-talk & phonetic misspellings corrected">🧹 <span id="hud-count-slang">0</span> Cleaned</span>
+          <span class="structure-tag-pill" id="hud-pill-spelling" title="Academic & STEM Technical Words Corrected" style="background:rgba(78,143,184,0.12); color:var(--accent-blue);">📖 <span id="hud-count-spelling">0</span> Tech Spelled</span>
+        </div>
+
+        <div class="flex" style="gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="cleanOverlapInTranscript()" title="Filter out background whispers, student side-comments and echo repeats">
+            🛡️ Clean Chatter
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="repairMumblesInTranscript()" title="Reconstruct slurred phonemes and mumbled word endings">
+            🗣️ Fix Mumbles
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="correctSpellingInTranscript()" title="Correct STEM, programming and medical phonetic misspellings">
+            📖 Fix Spelling
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="autoCapitalizeInTranscript()" title="Auto-capitalize acronyms (AI, SQL, API) and proper nouns (Turing, Dijkstra)">
+            🔠 Auto-Capitalize
+          </button>
+          <button type="button" class="btn btn-accent btn-sm" onclick="fullEnhanceTranscript()" title="Apply full speech enhancement suite instantly">
+            ✨ Full Enhance All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="transcript-wrapper">
+      <textarea id="transcript" class="transcript-box" placeholder="Transcript will appear here as you speak or upload a file... you can also paste, edit, or import extensive notes up to 300,000 words in one place." style="min-height:220px;"></textarea>
+    </div>
+
+    <div class="flex" style="margin-top:16px; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="clearTranscript()">Clear</button>
+      <button class="btn btn-accent" id="save-btn" onclick="saveLecture()">✨ Generate Smart Notes</button>
+    </div>
+    <p id="save-msg"></p>
+  </div>
+</div>
+
+<!-- Modal Container for Doubt Marker Details -->
+<div id="doubt-modal" class="modal-overlay hidden">
+  <div class="modal-content" id="doubt-modal-body" style="max-width:480px;">
+    <!-- Dynamic Doubt Marker Content -->
+  </div>
+</div>
+
+<!-- Modal Container for Spoken Voice Cues Guide -->
+<div id="spoken-cues-modal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width:540px; text-align:left;">
+    <div class="flex-between" style="border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:14px;">
+      <h3 style="margin:0;">🗣️ Spoken Punctuation Voice Cues</h3>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="closeSpokenCuesModal()">✕</button>
+    </div>
+    <p class="muted" style="margin-top:0;">Speak any of these verbal cues while voice recording to insert instant formatting:</p>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px; font-size:0.88rem;">
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"period" / "full stop"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>.</code> and capitalizes next word</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"comma"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>,</code> clause pause</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"question mark"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>?</code> inquiry mark</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"exclamation mark"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>!</code> emphasis mark</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"colon"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>:</code> list delimiter</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"semicolon"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>;</code> linked clause</p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"new paragraph"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts double line break <code>\n\n</code></p>
+      </div>
+      <div style="background:var(--paper); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <strong style="color:var(--ink);">"open / close quote"</strong>
+        <p class="muted" style="margin:2px 0 0;">Inserts <code>"..."</code> quotation marks</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; padding:10px 14px; border-radius:8px; background:rgba(42,157,143,0.1); border:1px solid rgba(42,157,143,0.25); font-size:0.84rem;">
+      ⚡ <strong>Natural Pause Detection:</strong> Pausing speaking for &gt; 1.2s automatically finishes the sentence with a period and prepares the next word for capitalization!
+    </div>
+
+    <div class="flex" style="margin-top:18px; justify-content:flex-end;">
+      <button type="button" class="btn btn-primary btn-sm" onclick="closeSpokenCuesModal()">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">Tip: Speech recognition works best in Google Chrome with microphone access allowed.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/record.js"></script>
+</body>
+</html>

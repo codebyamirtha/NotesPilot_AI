@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard - NotesPilot AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="navbar" id="navbar-mount"></div>
+
+<div class="container">
+  <!-- Low Attendance Alert Notification Banner -->
+  <div id="dashboard-attendance-alert" class="card hidden" style="background: rgba(193, 102, 107, 0.08); border-left: 4px solid var(--rule-red); padding: 14px 18px; margin-bottom: 18px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 1.5rem;">⚠️</span>
+        <div>
+          <strong style="color: var(--rule-red);">Low Attendance Alert</strong>
+          <p id="dashboard-attendance-alert-text" class="muted" style="margin: 2px 0 0; font-size: 0.88rem;">Your attendance is below the 75% requirement.</p>
+        </div>
+      </div>
+      <a href="attendance.html" class="btn btn-danger" style="padding: 6px 14px; font-size: 0.84rem;">View Attendance Projection & Fix →</a>
+    </div>
+  </div>
+
+  <h2>Welcome back 👋</h2>
+  <p class="muted">Here's a snapshot of your learning progress.</p>
+
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card"><div class="value">…</div><div class="label">Attendance Rate</div></div>
+    <div class="stat-card"><div class="value">…</div><div class="label">Classes Attended</div></div>
+    <div class="stat-card"><div class="value">…</div><div class="label">Total Learning Hours</div></div>
+    <div class="stat-card"><div class="value">…</div><div class="label">Lectures Completed</div></div>
+    <div class="stat-card"><div class="value">…</div><div class="label">Pending Doubts</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>🔥 Top Topics</h3>
+      <p class="muted">The subjects that show up most across your recorded lectures.</p>
+      <div id="top-topics"></div>
+    </div>
+
+    <div class="card">
+      <h3>🚀 Quick Actions</h3>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+        <a href="attendance.html" class="btn btn-primary" style="background: var(--sage);">📋 Check-in & Attendance Tracker</a>
+        <a href="supporter.html" class="btn btn-accent">🤖 Chat with Student Supporter (AI Tutor)</a>
+        <a href="record.html" class="btn btn-primary">🎙️ Record or Import Lecture</a>
+        <a href="planner.html" class="btn btn-ghost">📅 Weekly Timetable & Study Planner</a>
+        <a href="notes.html" class="btn btn-ghost">📒 View My Notes & Export</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Centralized Lecture Doubts & Solutions Checklist -->
+  <div class="card" style="margin-top:20px;">
+    <div class="flex-between" style="flex-wrap:wrap; gap:8px;">
+      <div>
+        <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+          📌 Lecture Doubts & Solutions Checklist
+        </h3>
+        <p class="muted" style="margin:4px 0 0; font-size:0.86rem;">
+          Track and resolve academic questions across all your lectures in one place.
+        </p>
+      </div>
+      <div class="flex" style="gap:6px;">
+        <button class="tag active" id="doubt-filter-all" onclick="filterDashboardDoubts('all')">All (<span id="count-all">0</span>)</button>
+        <button class="tag" id="doubt-filter-pending" onclick="filterDashboardDoubts('pending')">⏳ Pending (<span id="count-pending">0</span>)</button>
+        <button class="tag" id="doubt-filter-resolved" onclick="filterDashboardDoubts('resolved')">✅ Resolved (<span id="count-resolved">0</span>)</button>
+      </div>
+    </div>
+
+    <div id="dashboard-doubts-list" style="margin-top:14px;">
+      <p class="muted">Loading doubts...</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>📅 Recent Lectures</h3>
+    <div id="recent-lectures"><p class="muted">Loading...</p></div>
+  </div>
+</div>
+
+<footer class="app-footer">NotesPilot AI · Built to help you focus on learning, not writing.</footer>
+
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
